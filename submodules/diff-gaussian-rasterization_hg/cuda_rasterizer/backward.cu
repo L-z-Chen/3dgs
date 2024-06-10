@@ -17,7 +17,7 @@ namespace cg = cooperative_groups;
 
 // Backward pass for conversion of spherical harmonics to RGB for
 // each Gaussian.
-__device__ void computeColorFromSH(int idx, int deg, int max_coeffs, const glm::vec3* means, glm::vec3 campos, const float* hgs, const bool* clamped, const glm::vec3* dL_dcolor, glm::vec3* dL_dmeans, glm::vec3* dL_dhgs)
+__device__ void computeColorFromSH(int idx, int deg, int max_coeffs, const glm::vec3* means, glm::vec3 campos, const float* hgs, const bool* clamped, const glm::vec3* dL_dcolor, glm::vec3* dL_dmeans, glm::vec3* dL_dhgs, const float lmbd)
 {
 	// Compute intermediate values, as it is done during forward
 	glm::vec3 pos = means[idx];
@@ -133,7 +133,6 @@ __device__ void computeColorFromSH(int idx, int deg, int max_coeffs, const glm::
 			}
 		}
 	}
-	float lmbd = 0.1f;
 	// Compute dL_dhg_k for k from 0 to 15
 	for (int k = 0; k < 16; ++k) {
 		glm::vec3 sum_term(0.0f, 0.0f, 0.0f);
@@ -388,7 +387,8 @@ __global__ void preprocessCUDA(
 	float* dL_dcov3D,
 	float* dL_dhg,
 	glm::vec3* dL_dscale,
-	glm::vec4* dL_drot)
+	glm::vec4* dL_drot,
+	const float lmbd)
 {
 	auto idx = cg::this_grid().thread_rank();
 	if (idx >= P || !(radii[idx] > 0))
@@ -415,7 +415,7 @@ __global__ void preprocessCUDA(
 
 	// Compute gradient updates due to computing colors from SHs
 	if (hgs)
-		computeColorFromSH(idx, D, M, (glm::vec3*)means, *campos, hgs, clamped, (glm::vec3*)dL_dcolor, (glm::vec3*)dL_dmeans, (glm::vec3*)dL_dhg);
+		computeColorFromSH(idx, D, M, (glm::vec3*)means, *campos, hgs, clamped, (glm::vec3*)dL_dcolor, (glm::vec3*)dL_dmeans, (glm::vec3*)dL_dhg, lmbd);
 
 	// Compute gradient updates due to computing covariance from scale/rotation
 	if (scales)
@@ -605,7 +605,8 @@ void BACKWARD::preprocess(
 	float* dL_dcov3D,
 	float* dL_dhg,
 	glm::vec3* dL_dscale,
-	glm::vec4* dL_drot)
+	glm::vec4* dL_drot,
+	const float lmbd)
 {
 	// Propagate gradients for the path of 2D conic matrix computation. 
 	// Somewhat long, thus it is its own kernel rather than being part of 
@@ -645,7 +646,8 @@ void BACKWARD::preprocess(
 		dL_dcov3D,
 		dL_dhg,
 		dL_dscale,
-		dL_drot);
+		dL_drot,
+		lmbd);
 }
 
 void BACKWARD::render(

@@ -1,0 +1,4 @@
+# ninja log v5
+1	23974	1702507961151285000	/scratch/cluster/lzchen/lzchen_vscode/gaussian-splatting/submodules/simple-knn/build/temp.linux-x86_64-3.9/simple_knn.o	8495135496793f2d
+1	31860	1702507969030269000	/scratch/cluster/lzchen/lzchen_vscode/gaussian-splatting/submodules/simple-knn/build/temp.linux-x86_64-3.9/ext.o	8eacfbca70ae8a01
+2	89264	1702508026434274000	/scratch/cluster/lzchen/lzchen_vscode/gaussian-splatting/submodules/simple-knn/build/temp.linux-x86_64-3.9/spatial.o	133b33651ed84b3a
